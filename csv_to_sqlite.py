@@ -31,33 +31,25 @@ def check_table_exists(table):
     cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}';")
     return cursor.fetchone() is not None
 
-# Parse the CSV File
-'''
-Open the CSV file with the built-in csv module.
-Read the header row for column names.
-Column names must:
-    match the header row in the file.
-    contain no spaces or special characters, so they should directly map to SQL column names as per the assignment.
-'''
-
 # based on Stack Answer from Jan 21, 2014 at 14:55
 # https://stackoverflow.com/questions/21257899/writing-a-csv-file-into-sql-server-database-using-python
 
+# open csv file
 with open(csv_file, 'r', encoding='utf-8-sig') as file:
     reader = csv.reader(file)
     header = next(reader)
 
-    # clean headers for SQL table
+    # read and clean headers for SQL table
     columns = []
     for col in header:
         col = col.replace(" ", "_").replace("-", "_").lower()
         columns.append(col)
     print(f"Columns: {columns}")
 
-    # create table first
+    # if table doesn't exist, create it
     if not check_table_exists(table):
         columns_def = ', '.join([f"{col} TEXT" for col in columns])
-        create_table_query = f"CREATE TABLE IF NOT EXISTS {table} ({columns_def})"
+        create_table_query = f"CREATE TABLE IF NOT EXISTS {table} ({columns_def})" # match SQL headers to CSV headers
         cursor.execute(create_table_query)
 
     # write data to SQL table
