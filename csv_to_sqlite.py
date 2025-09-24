@@ -3,29 +3,19 @@ import csv
 import sqlite3
 import os
 
-# Parse the Command-Line Arguments
-'''
-Use the sys.argv or argparse module
-Take two arguments:
-    the output database name (e.g., data.db)
-    and the input CSV filename (e.g., county_health_rankings.csv or zip_county.csv)
-'''
-
+# parse the Command-Line Arguments
 # if database and data file are not provided, exit with error
 if len(sys.argv) != 3:
-    sys.exit("Missing arguments. Usage: python csv_to_sqlite.py <database_name> <csv_file_name>")
-    sys.exit(1)
+    sys.exit("Missing arguments. Usage: python csv_to_sqlite.py <database_name.db> <csv_file_name.csv>")
+else:
+    if sys.argv[1].endswith(".db") == False:
+        sys.exit("Database name must end with .db")
+    elif sys.argv[2].endswith(".csv") == False:
+        sys.exit("CSV file name must end with .csv")
 
 # store arguments
 db = sys.argv[1]
 csv_file = sys.argv[2]
-
-# Determine the Table Name
-'''
-Use the base name of the CSV file (without .csv) as the table name
-    e.g., county_health_rankings.csv → table county_health_rankings
-Ensure the table name fits SQLite requirements: no quotes, no spaces.
-'''
 
 # get table name from csv file name
 table = os.path.splitext(os.path.basename(csv_file))[0]
