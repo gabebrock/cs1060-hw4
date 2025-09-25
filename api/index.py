@@ -6,6 +6,7 @@ import sqlite3
 import os
 
 app = Flask(__name__)
+db_path = os.path.join(os.path.dirname(__file__), 'data.db')
 
 # Valid measure names as specified in homework
 VALID_MEASURES = [
@@ -50,7 +51,7 @@ def county_data():
             return jsonify({"error": f"Invalid measure_name. Must be one of: {VALID_MEASURES}"}), 400
         
         # connect to database
-        db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data.db')
+        db_path = os.path.join(os.path.dirname(__file__), 'data.db')
         conn = sqlite3.connect(db_path)
         conn.row_factory = sqlite3.Row  # enable column access by name
         cursor = conn.cursor()
