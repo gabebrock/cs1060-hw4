@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
 # claude sonnet 4
+
 """
 Test suite for csv_to_sqlite.py
 Automates the homework example and validates functionality
