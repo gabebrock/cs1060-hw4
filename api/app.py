@@ -1,3 +1,6 @@
+# flask api implementation
+# claude sonnet 4
+
 from flask import Flask, request, jsonify
 import sqlite3
 import os
@@ -23,7 +26,7 @@ VALID_MEASURES = [
 @app.route('/county_data', methods=['POST'])
 def county_data():
     try:
-        # Check for the Easter egg first (supersedes other behavior)
+        # check for the Easter egg first (supersedes other behavior)
         data = request.get_json()
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
@@ -31,35 +34,34 @@ def county_data():
         if data.get('coffee') == 'teapot':
             return jsonify({"error": "I'm a teapot"}), 418
         
-        # Validate required fields
+        # validate required fields
         zip_code = data.get('zip')
         measure_name = data.get('measure_name')
         
         if not zip_code or not measure_name:
             return jsonify({"error": "Both 'zip' and 'measure_name' are required"}), 400
         
-        # Validate zip code format (5 digits)
+        # validate zip code format (5 digits)
         if not (isinstance(zip_code, str) and len(zip_code) == 5 and zip_code.isdigit()):
             return jsonify({"error": "ZIP code must be a 5-digit string"}), 400
         
-        # Validate measure_name
+        # validate measure_name
         if measure_name not in VALID_MEASURES:
             return jsonify({"error": f"Invalid measure_name. Must be one of: {VALID_MEASURES}"}), 400
         
-        # Connect to database
+        # connect to database
         db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data.db')
         conn = sqlite3.connect(db_path)
-        conn.row_factory = sqlite3.Row  # Enable column access by name
+        conn.row_factory = sqlite3.Row  # enable column access by name
         cursor = conn.cursor()
         
-        # Query to join zip_county and county_health_rankings tables
-        # First get county info from zip, then get health data for that county
+        # query to join zip_county and county_health_rankings tables
+        # first get county info from zip, then get health data for that county
         query = """
-        SELECT chr.*
-        FROM zip_county zc
-        JOIN county_health_rankings chr ON zc.county_code = chr.county_code 
-                                        AND zc.state_abbreviation = chr.state_code
-        WHERE zc.zip = ? AND chr.measure_name = ?
+        SELECT rank.*
+        FROM zip_county zipc
+        JOIN county_health_rankings rank ON zipc.county_code = rank.fipscode 
+        WHERE zipc.zip = ? AND rank.measure_name = ?
         """
         
         cursor.execute(query, (zip_code, measure_name))
@@ -67,11 +69,11 @@ def county_data():
         
         conn.close()
         
-        # Check if any results found
+        #  check if any results found
         if not results:
             return jsonify({"error": "No data found for the specified ZIP code and measure"}), 404
         
-        # Convert results to list of dictionaries
+        # convert results to list of dictionaries
         response_data = []
         for row in results:
             response_data.append(dict(row))
@@ -94,4 +96,4 @@ def home():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5001) # run on port 5001 to avoid conflict with MacOS command center
