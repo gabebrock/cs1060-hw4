@@ -133,3 +133,4 @@ dmypy.json
 data/
 *.db
 .DS_Store
+sql_injections.md
