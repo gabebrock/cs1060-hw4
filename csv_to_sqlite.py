@@ -28,7 +28,7 @@ cursor = connection.cursor()
 
 # check if table exists // claude
 def check_table_exists(table):
-    cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}';")
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", (table,))
     return cursor.fetchone() is not None
 
 # based on Stack Answer from Jan 21, 2014 at 14:55
@@ -48,8 +48,9 @@ with open(csv_file, 'r', encoding='utf-8-sig') as file:
 
     # if table doesn't exist, create it
     if not check_table_exists(table):
-        columns_def = ', '.join([f"{col} TEXT" for col in columns])
-        create_table_query = f"CREATE TABLE IF NOT EXISTS {table} ({columns_def})" # match SQL headers to CSV headers
+        # escape column names to prevent SQL injection
+        columns_def = ', '.join([f'"{col}" TEXT' for col in columns])
+        create_table_query = f'CREATE TABLE IF NOT EXISTS "{table}" ({columns_def})'
         cursor.execute(create_table_query)
 
     # write data to SQL table
@@ -58,9 +59,9 @@ with open(csv_file, 'r', encoding='utf-8-sig') as file:
         header = next(reader)
         print(f"Clean headers: {columns}")
 
-        # insert data from CSV to SQL table
+        # insert data from CSV to SQL table - use parameterized query for data
         placeholders = ', '.join(['?' for _ in header]) # claude
-        data_insert_query = f"INSERT INTO {table} VALUES ({placeholders})"
+        data_insert_query = f'INSERT INTO "{table}" VALUES ({placeholders})'
         row_count = 0
     
         for data in reader:
