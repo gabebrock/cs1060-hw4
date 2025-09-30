@@ -27,11 +27,17 @@ VALID_MEASURES = [
 @app.route('/county_data', methods=['POST'])
 def county_data():
     try:
-        # check for the Easter egg first (supersedes other behavior)
-        data = request.get_json()
-        if not data:
+        # Try to get JSON data, handle invalid JSON properly
+        try:
+            data = request.get_json(force=True)
+        except Exception:
             return jsonify({"error": "Invalid JSON"}), 400
             
+        # Check if we got valid JSON data (but allow empty objects)
+        if data is None or not isinstance(data, dict) or len(data) == 0:
+            return jsonify({"error": "Invalid JSON"}), 400
+            
+        # check for the Easter egg first (supersedes other behavior)
         if data.get('coffee') == 'teapot':
             return jsonify({"error": "I'm a teapot"}), 418
         
@@ -39,7 +45,8 @@ def county_data():
         zip_code = data.get('zip')
         measure_name = data.get('measure_name')
         
-        if not zip_code or not measure_name:
+        # Check if fields are missing or empty strings
+        if not zip_code or not measure_name or zip_code == '' or measure_name == '':
             return jsonify({"error": "Both 'zip' and 'measure_name' are required"}), 400
         
         # validate zip code format (5 digits)
